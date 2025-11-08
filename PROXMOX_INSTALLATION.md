@@ -43,19 +43,14 @@ sudo apt update
 sudo apt install -y dkms build-essential git
 ```
 
-### 2. Copy Scripts to /home/admin/
+### 2. Install Scripts to /opt/asustor-fancontrol/
 
 ```bash
-# Create directory if it doesn't exist
-sudo mkdir -p /home/admin
-
-# Copy the fan control scripts from this repository
-sudo cp temp_monitor.sh /home/admin/
-sudo cp proxmox/check_asustor_it87.kmod.sh /home/admin/
+# Copy the entire opt/asustor-fancontrol directory to /opt
+sudo cp -r opt/asustor-fancontrol /opt/
 
 # Make scripts executable
-sudo chmod +x /home/admin/temp_monitor.sh
-sudo chmod +x /home/admin/check_asustor_it87.kmod.sh
+sudo chmod +x /opt/asustor-fancontrol/bin/*.sh
 ```
 
 ### 3. Create systemd Service Files
@@ -63,8 +58,8 @@ sudo chmod +x /home/admin/check_asustor_it87.kmod.sh
 #### Option A: Using the provided files (easiest)
 
 ```bash
-sudo cp proxmox/asustor-fancontrol.service /etc/systemd/system/
-sudo cp proxmox/asustor-fancontrol-monitor.service /etc/systemd/system/
+sudo cp /opt/asustor-fancontrol/systemd/asustor-fancontrol.service /etc/systemd/system/
+sudo cp /opt/asustor-fancontrol/systemd/asustor-fancontrol-monitor.service /etc/systemd/system/
 ```
 
 #### Option B: Create manually
@@ -80,7 +75,7 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/home/admin/check_asustor_it87.kmod.sh
+ExecStart=/opt/asustor-fancontrol/bin/check_asustor_it87.kmod.sh
 RemainAfterExit=yes
 StandardOutput=journal
 StandardError=journal
@@ -102,7 +97,7 @@ Requires=asustor-fancontrol.service
 
 [Service]
 Type=simple
-ExecStart=/home/admin/temp_monitor.sh
+ExecStart=/opt/asustor-fancontrol/bin/temp_monitor.sh
 Restart=on-failure
 RestartSec=10
 StartLimitInterval=60
@@ -155,7 +150,7 @@ sudo journalctl -u asustor-fancontrol-monitor.service -n 50
 
 ### Tuning Fan Behavior
 
-Edit `/home/admin/temp_monitor.sh` and modify these variables at the top:
+Edit `/opt/asustor-fancontrol/bin/temp_monitor.sh` and modify these variables at the top:
 
 ```bash
 # How often to check temps (seconds)
@@ -210,7 +205,7 @@ sudo dkms status
 ### View Full Installation Log
 
 ```bash
-sudo cat /var/log/asustor-fancontrol.log
+sudo cat /var/log/asustor-fancontrol/asustor-fancontrol.log
 ```
 
 ### Restart Services
@@ -239,7 +234,7 @@ sensors
 
 ### Debugging
 
-Enable debug output in `temp_monitor.sh`:
+Enable debug output in `/opt/asustor-fancontrol/bin/temp_monitor.sh`:
 
 ```bash
 # At the top of temp_monitor.sh, change:
@@ -338,12 +333,11 @@ sudo systemctl daemon-reload
 # Uninstall module from DKMS
 sudo dkms remove asustor-it87/1.0 --all
 
-# Remove scripts
-sudo rm /home/admin/check_asustor_it87.kmod.sh
-sudo rm /home/admin/temp_monitor.sh
+# Remove installation directory
+sudo rm -rf /opt/asustor-fancontrol
 
 # Remove logs
-sudo rm /var/log/asustor-fancontrol.log
+sudo rm -rf /var/log/asustor-fancontrol
 ```
 
 ---
@@ -374,7 +368,7 @@ sudo journalctl -u asustor-fancontrol-monitor.service -n 100
 ls -la /sys/class/hwmon/
 
 # Run script manually for debugging
-sudo /home/admin/temp_monitor.sh
+sudo /opt/asustor-fancontrol/bin/temp_monitor.sh
 ```
 
 ### hwmon paths not found

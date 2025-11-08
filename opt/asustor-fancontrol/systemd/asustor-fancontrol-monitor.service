@@ -1,0 +1,20 @@
+[Unit]
+Description=Asustor Temperature Monitoring & Fan Control
+After=asustor-fancontrol.service
+Requires=asustor-fancontrol.service
+Documentation=https://github.com/HgTxRx/flashstor-fancontrol
+
+[Service]
+Type=simple
+ExecStart=/opt/asustor-fancontrol/bin/temp_monitor.sh
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+StandardOutput=journal
+StandardError=journal
+User=root
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
