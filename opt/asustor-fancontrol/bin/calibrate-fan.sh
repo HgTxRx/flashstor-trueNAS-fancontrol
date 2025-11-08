@@ -45,7 +45,10 @@ echo "PWM,RPM,Notes" > "$OUTPUT_FILE"
 # Test PWM values
 declare -a PWM_VALUES=(0 20 40 60 80 100 120 140 160 180 200 220 240 255)
 
-echo -e "\n${GREEN}Starting calibration...${NC}\n"
+echo -e "\n${GREEN}Starting calibration...${NC}"
+echo "Waiting 30 seconds for fan to stabilize before first test..."
+sleep 30
+echo ""
 
 for pwm in "${PWM_VALUES[@]}"; do
     echo -n "Testing PWM $pwm... "
@@ -53,8 +56,8 @@ for pwm in "${PWM_VALUES[@]}"; do
     # Set PWM value
     echo "$pwm" > "$PWM_FILE"
 
-    # Wait for fan to stabilize (3 seconds)
-    sleep 3
+    # Wait for fan to stabilize (10 seconds for mechanical response)
+    sleep 10
 
     # Read fan RPM
     rpm=$(cat "$FAN_FILE")
@@ -76,7 +79,7 @@ done
 echo ""
 echo -n "Returning fan to minimum speed (PWM 60)... "
 echo "60" > "$PWM_FILE"
-sleep 2
+sleep 10
 rpm=$(cat "$FAN_FILE")
 echo -e "${GREEN}Done ($rpm RPM)${NC}"
 
